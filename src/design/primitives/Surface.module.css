@@ -1,0 +1,13 @@
+.root {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.elevated {
+  background-color: var(--color-surface-2);
+}
+
+.padded {
+  padding: var(--space-4);
+}
