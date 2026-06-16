@@ -1,4 +1,4 @@
-# Mis Finanzas — Contexto del proyecto
+# Time is money — Contexto del proyecto
 
 ## Qué es
 App de finanzas personales para uso propio (un solo usuario: yo).
