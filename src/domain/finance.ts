@@ -6,8 +6,8 @@ export function calculateBalance(transactions: Transaction[]): number {
   }, 0)
 }
 
-export function formatARS(amount: number): string {
-  return amount.toLocaleString('es-AR', {
+export function formatARS(cents: number): string {
+  return (cents / 100).toLocaleString('es-AR', {
     style: 'currency',
     currency: 'ARS',
     minimumFractionDigits: 2,

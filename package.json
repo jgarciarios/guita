@@ -12,6 +12,7 @@
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.7",
     "@fontsource/ibm-plex-sans": "^5.2.8",
+    "@sqlite.org/sqlite-wasm": "^3.53.0-build1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },
@@ -27,6 +28,8 @@
     "globals": "^17.6.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "vite-plugin-top-level-await": "^1.6.0",
+    "vite-plugin-wasm": "^3.6.0"
   }
 }

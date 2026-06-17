@@ -1,13 +1,22 @@
 import type { Transaction } from '../../domain/types'
 import type { TransactionRepository } from './TransactionRepository'
 
+const CATEGORY_NAME: Record<string, string> = {
+  salary:    'Sueldo',
+  freelance: 'Freelance',
+  rent:      'Alquiler',
+  groceries: 'Supermercado',
+  transport: 'Transporte',
+}
+
 const SEED: Transaction[] = [
   {
     id: '1',
     type: 'income',
-    amount: 1_850_000,
+    amount: 185_000_000,
     currency: 'ARS',
     categoryId: 'salary',
+    categoryName: 'Sueldo',
     account: 'Banco Galicia',
     date: '2026-06-01',
     note: 'Sueldo junio',
@@ -16,9 +25,10 @@ const SEED: Transaction[] = [
   {
     id: '2',
     type: 'expense',
-    amount: 420_000,
+    amount: 42_000_000,
     currency: 'ARS',
     categoryId: 'rent',
+    categoryName: 'Alquiler',
     account: 'Efectivo',
     date: '2026-06-05',
     note: 'Alquiler',
@@ -27,9 +37,10 @@ const SEED: Transaction[] = [
   {
     id: '3',
     type: 'expense',
-    amount: 87_300,
+    amount: 8_730_000,
     currency: 'ARS',
     categoryId: 'groceries',
+    categoryName: 'Supermercado',
     account: 'Banco Galicia',
     date: '2026-06-10',
     note: 'Supermercado Coto',
@@ -38,9 +49,10 @@ const SEED: Transaction[] = [
   {
     id: '4',
     type: 'income',
-    amount: 350_000,
+    amount: 35_000_000,
     currency: 'ARS',
     categoryId: 'freelance',
+    categoryName: 'Freelance',
     account: 'Banco Galicia',
     date: '2026-06-12',
     note: 'Proyecto freelance',
@@ -49,9 +61,10 @@ const SEED: Transaction[] = [
   {
     id: '5',
     type: 'expense',
-    amount: 54_800,
+    amount: 5_480_000,
     currency: 'ARS',
     categoryId: 'transport',
+    categoryName: 'Transporte',
     account: 'Efectivo',
     date: '2026-06-15',
     note: 'Nafta',
@@ -60,7 +73,10 @@ const SEED: Transaction[] = [
 ]
 
 export class InMemoryTransactionRepository implements TransactionRepository {
-  list(): Transaction[] {
-    return [...SEED].sort((a, b) => b.date.localeCompare(a.date))
+  list(): Promise<Transaction[]> {
+    const sorted = [...SEED]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .map(t => ({ ...t, categoryName: CATEGORY_NAME[t.categoryId] ?? t.categoryId }))
+    return Promise.resolve(sorted)
   }
 }

@@ -1,20 +1,41 @@
+import { useState, useEffect } from 'react'
 import { Surface, Text } from './design'
-import { InMemoryTransactionRepository } from './data/repositories/InMemoryTransactionRepository'
+import { SqliteTransactionRepository } from './data/sqlite/SqliteTransactionRepository'
 import { calculateBalance, formatARS, formatDate } from './domain/finance'
-
-const repo = new InMemoryTransactionRepository()
-const transactions = repo.list()
-const balance = calculateBalance(transactions)
-
-const CATEGORY_LABEL: Record<string, string> = {
-  salary:    'Sueldo',
-  freelance: 'Freelance',
-  rent:      'Alquiler',
-  groceries: 'Supermercado',
-  transport: 'Transporte',
-}
+import type { Transaction } from './domain/types'
 
 export default function App() {
+  const [transactions, setTransactions] = useState<Transaction[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    SqliteTransactionRepository.create()
+      .then(repo => repo.list())
+      .then(setTransactions)
+      .catch(err => {
+        const msg = err instanceof Error ? err.message : JSON.stringify(err)
+        setError(msg)
+      })
+  }, [])
+
+  if (error) {
+    return (
+      <main style={{ padding: 'var(--space-8)' }}>
+        <Text variant="muted" style={{ color: 'var(--color-red)' }}>Error al inicializar la base de datos: {error}</Text>
+      </main>
+    )
+  }
+
+  if (transactions === null) {
+    return (
+      <main style={{ padding: 'var(--space-8)' }}>
+        <Text variant="muted">Iniciando base de datos…</Text>
+      </main>
+    )
+  }
+
+  const balance = calculateBalance(transactions)
+
   return (
     <main style={{ padding: 'var(--space-8)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', maxWidth: 480 }}>
 
@@ -51,7 +72,7 @@ export default function App() {
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Text variant="body" style={{ fontSize: 'var(--text-sm)' }}>
-                {CATEGORY_LABEL[t.categoryId] ?? t.categoryId}
+                {t.categoryName}
               </Text>
               <Text variant="muted" style={{ fontSize: 'var(--text-xs)' }}>
                 {formatDate(t.date)}
