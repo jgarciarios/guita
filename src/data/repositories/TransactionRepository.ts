@@ -1,5 +1,7 @@
-import type { Transaction } from '../../domain/types'
+import type { Transaction, Category, TransactionType } from '../../domain/types'
 
 export interface TransactionRepository {
   list(): Promise<Transaction[]>
+  add(transaction: Omit<Transaction, 'id'>): Promise<Transaction>
+  listCategories(type?: TransactionType): Promise<Category[]>
 }

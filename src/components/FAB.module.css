@@ -1,0 +1,29 @@
+.root {
+  position: fixed;
+  bottom: var(--space-8);
+  right: var(--space-8);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: var(--color-green);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  line-height: 1;
+  color: #0A0F0D;
+  font-weight: var(--weight-regular);
+  box-shadow: 0 2px 12px rgba(47, 191, 113, 0.25);
+  transition: background-color 120ms, transform 120ms;
+  z-index: 100;
+}
+
+.root:hover {
+  background-color: #36d97f;
+}
+
+.root:active {
+  transform: scale(0.93);
+}

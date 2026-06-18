@@ -64,3 +64,31 @@ enemigo número uno: si cargar un gasto cuesta, no lo voy a usar.
 - F3: vista anual + comparativas
 - F4: métricas y consejos derivados
 - F5: sync opcional a Supabase
+
+## Estado actual (Fase 1 completa)
+Implementado y funcionando:
+- Design system en src/design/: tokens verde/negro, primitivos Surface y Text,
+  IBM Plex Sans + Mono self-hosted.
+- Dominio en src/domain/: Transaction, Category, calculateBalance, formatARS, formatDate.
+- Repository pattern (interface async TransactionRepository) con dos
+  implementaciones: InMemory y Sqlite.
+- Persistencia real: SQLite WASM sobre OPFS (VFS opfs-sahpool), persistente entre
+  recargas. App.tsx usa SqliteTransactionRepository con loading state.
+- Pantalla: saldo + lista de movimientos.
+
+Decisiones clave:
+- Los montos se guardan y manejan como INTEGER en centavos en TODO el sistema.
+  formatARS divide por 100 solo al mostrar. Nunca float para dinero.
+- VFS opfs-sahpool (los headers COOP/COEP están puestos aunque sahpool no los
+  exige estrictamente).
+
+Gotchas de SQLite WASM (para no re-tropezar):
+- El export sqlite3Worker1Promiser del paquete ESM YA es la función .v2; no
+  llamar .v2() encima.
+- El worker de stock no instala opfs-sahpool; usar worker propio que llame
+  installOpfsSAHPoolVfs antes de initWorker1API.
+
+Próximo paso:
+- Completar el CRUD: formulario de carga de movimientos (objetivo < 5 segundos,
+  principio #1). Agregar add() a la interface e implementarlo en ambos repos.
+  Después: dashboard mensual (Fase 2).

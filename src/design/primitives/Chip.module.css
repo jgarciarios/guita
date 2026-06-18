@@ -1,0 +1,28 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  background-color: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition: background-color 100ms, border-color 100ms, color 100ms;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.root:hover:not(.selected) {
+  border-color: var(--color-text-muted);
+  color: var(--color-text);
+}
+
+.selected {
+  background-color: var(--color-green-dim);
+  border-color: var(--color-green);
+  color: var(--color-text);
+}

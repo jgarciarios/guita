@@ -1,13 +1,17 @@
-import type { Transaction } from '../../domain/types'
+import type { Transaction, Category, TransactionType } from '../../domain/types'
 import type { TransactionRepository } from './TransactionRepository'
 
-const CATEGORY_NAME: Record<string, string> = {
-  salary:    'Sueldo',
-  freelance: 'Freelance',
-  rent:      'Alquiler',
-  groceries: 'Supermercado',
-  transport: 'Transporte',
-}
+const CATEGORIES: Category[] = [
+  { id: 'salary',    name: 'Sueldo',       type: 'income',  color: '#2FBF71' },
+  { id: 'freelance', name: 'Freelance',    type: 'income',  color: '#2FBF71' },
+  { id: 'rent',      name: 'Alquiler',     type: 'expense', color: '#E5544B' },
+  { id: 'groceries', name: 'Supermercado', type: 'expense', color: '#E5544B' },
+  { id: 'transport', name: 'Transporte',   type: 'expense', color: '#E5544B' },
+]
+
+const CATEGORY_NAME: Record<string, string> = Object.fromEntries(
+  CATEGORIES.map(c => [c.id, c.name])
+)
 
 const SEED: Transaction[] = [
   {
@@ -73,10 +77,28 @@ const SEED: Transaction[] = [
 ]
 
 export class InMemoryTransactionRepository implements TransactionRepository {
+  private data: Transaction[] = SEED.map(t => ({
+    ...t,
+    categoryName: CATEGORY_NAME[t.categoryId] ?? t.categoryId,
+  }))
+
   list(): Promise<Transaction[]> {
-    const sorted = [...SEED]
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .map(t => ({ ...t, categoryName: CATEGORY_NAME[t.categoryId] ?? t.categoryId }))
+    const sorted = [...this.data].sort((a, b) => b.date.localeCompare(a.date))
     return Promise.resolve(sorted)
+  }
+
+  add(transaction: Omit<Transaction, 'id'>): Promise<Transaction> {
+    const created: Transaction = {
+      ...transaction,
+      id: crypto.randomUUID(),
+      categoryName: CATEGORY_NAME[transaction.categoryId] ?? transaction.categoryId,
+    }
+    this.data.push(created)
+    return Promise.resolve(created)
+  }
+
+  listCategories(type?: TransactionType): Promise<Category[]> {
+    const result = type ? CATEGORIES.filter(c => c.type === type) : [...CATEGORIES]
+    return Promise.resolve(result)
   }
 }

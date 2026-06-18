@@ -1,6 +1,6 @@
 import { sqlite3Worker1Promiser } from '@sqlite.org/sqlite-wasm'
 import type { Worker1Promiser } from '@sqlite.org/sqlite-wasm'
-import type { Transaction } from '../../domain/types'
+import type { Transaction, Category, TransactionType } from '../../domain/types'
 import type { TransactionRepository } from '../repositories/TransactionRepository'
 
 const SEED_CATEGORIES = [
@@ -20,7 +20,11 @@ const SEED_TRANSACTIONS = [
 ]
 
 export class SqliteTransactionRepository implements TransactionRepository {
-  private constructor(private readonly promiser: Worker1Promiser) {}
+  private readonly promiser: Worker1Promiser
+
+  private constructor(promiser: Worker1Promiser) {
+    this.promiser = promiser
+  }
 
   static async create(): Promise<SqliteTransactionRepository> {
     const promiser = await sqlite3Worker1Promiser({
@@ -89,6 +93,73 @@ export class SqliteTransactionRepository implements TransactionRepository {
         bind: [t.id, t.type, t.amount, t.currency, t.categoryId, t.account, t.date, t.note, t.paymentMethod],
       })
     }
+  }
+
+  async add(transaction: Omit<Transaction, 'id'>): Promise<Transaction> {
+    const id = crypto.randomUUID()
+    await this.promiser('exec', {
+      sql: `INSERT INTO transactions
+            (id, type, amount, currency, category_id, account, date, note, payment_method)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      bind: [
+        id,
+        transaction.type,
+        transaction.amount,
+        transaction.currency,
+        transaction.categoryId,
+        transaction.account,
+        transaction.date,
+        transaction.note ?? null,
+        transaction.paymentMethod,
+      ],
+    })
+
+    const { result } = await this.promiser('exec', {
+      sql: `SELECT t.*, COALESCE(c.name, t.category_id) AS category_name
+            FROM transactions t
+            LEFT JOIN categories c ON c.id = t.category_id
+            WHERE t.id = ?`,
+      bind: [id],
+      returnValue: 'resultRows',
+      rowMode: 'object',
+    })
+
+    const rows = (result.resultRows ?? []) as Array<Record<string, string | number | null>>
+    const row = rows[0]
+    return {
+      id:            String(row.id),
+      type:          row.type as Transaction['type'],
+      amount:        Number(row.amount),
+      currency:      String(row.currency),
+      categoryId:    String(row.category_id),
+      categoryName:  String(row.category_name ?? row.category_id),
+      account:       String(row.account),
+      date:          String(row.date),
+      note:          row.note != null ? String(row.note) : undefined,
+      paymentMethod: row.payment_method as Transaction['paymentMethod'],
+    }
+  }
+
+  async listCategories(type?: TransactionType): Promise<Category[]> {
+    const sql = type
+      ? 'SELECT * FROM categories WHERE type = ? ORDER BY name'
+      : 'SELECT * FROM categories ORDER BY name'
+    const bind = type ? [type] : []
+
+    const { result } = await this.promiser('exec', {
+      sql,
+      bind,
+      returnValue: 'resultRows',
+      rowMode: 'object',
+    })
+
+    const rows = (result.resultRows ?? []) as Array<Record<string, string>>
+    return rows.map(row => ({
+      id:    String(row.id),
+      name:  String(row.name),
+      type:  row.type as TransactionType,
+      color: String(row.color),
+    }))
   }
 
   async list(): Promise<Transaction[]> {
