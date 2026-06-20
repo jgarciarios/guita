@@ -39,6 +39,14 @@ export default function App() {
     setTransactions(updated)
   }
 
+  async function handleDelete(id: string) {
+    if (!window.confirm('¿Eliminar este movimiento?')) return
+    if (!repoRef.current) return
+    await repoRef.current.delete(id)
+    refresh()
+    setRefreshKey(k => k + 1)
+  }
+
   function closePanel() {
     setPanelOpen(false)
     setEditingTransaction(null)
@@ -115,16 +123,39 @@ export default function App() {
                         {t.note ? ` · ${t.note}` : ''}
                       </Text>
                     </div>
-                    <Text
-                      variant="amount"
-                      style={{
-                        fontSize: 'var(--text-sm)',
-                        color: t.type === 'income' ? 'var(--color-green)' : 'var(--color-red)',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {t.type === 'income' ? '+' : '−'} {formatARS(t.amount)}
-                    </Text>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                      <Text
+                        variant="amount"
+                        style={{
+                          fontSize: 'var(--text-sm)',
+                          color: t.type === 'income' ? 'var(--color-green)' : 'var(--color-red)',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {t.type === 'income' ? '+' : '−'} {formatARS(t.amount)}
+                      </Text>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDelete(t.id) }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: 'var(--space-1)',
+                          cursor: 'pointer',
+                          color: 'var(--color-text-muted)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          borderRadius: 4,
+                          flexShrink: 0,
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-red)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
+                        aria-label="Eliminar movimiento"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M1 3h12M5 3V2h4v1M2 3l1 9h6l1-9H2z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    </div>
                   </Surface>
                 ))}
               </div>

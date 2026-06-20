@@ -4,6 +4,7 @@ export interface TransactionRepository {
   list(): Promise<Transaction[]>
   add(transaction: Omit<Transaction, 'id'>): Promise<Transaction>
   update(transaction: Transaction): Promise<Transaction>
+  delete(id: string): Promise<void>
   listCategories(type?: TransactionType): Promise<Category[]>
   createCategory(category: Omit<Category, 'id'>): Promise<Category>
   deleteCategory(id: string): Promise<void>

@@ -159,6 +159,13 @@ export class SqliteTransactionRepository implements TransactionRepository {
     }
   }
 
+  async delete(id: string): Promise<void> {
+    await this.promiser('exec', {
+      sql: 'DELETE FROM transactions WHERE id = ?',
+      bind: [id],
+    })
+  }
+
   async update(transaction: Transaction): Promise<Transaction> {
     await this.promiser('exec', {
       sql: `UPDATE transactions

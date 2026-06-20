@@ -98,6 +98,11 @@ export class InMemoryTransactionRepository implements TransactionRepository {
     return Promise.resolve(created)
   }
 
+  delete(id: string): Promise<void> {
+    this.data = this.data.filter(t => t.id !== id)
+    return Promise.resolve()
+  }
+
   update(transaction: Transaction): Promise<Transaction> {
     const idx = this.data.findIndex(t => t.id === transaction.id)
     if (idx === -1) return Promise.reject(new Error(`Transaction ${transaction.id} not found`))
