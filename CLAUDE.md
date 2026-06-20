@@ -92,3 +92,14 @@ Próximo paso:
 - Completar el CRUD: formulario de carga de movimientos (objetivo < 5 segundos,
   principio #1). Agregar add() a la interface e implementarlo en ambos repos.
   Después: dashboard mensual (Fase 2).
+
+## Estado actual (Fase 2 completa + Layout Shell)
+Implementado y funcionando:
+- Bottom nav mobile (AppShell) con max-width 480px centrado en desktop
+- Dashboard mensual: ingresos/gastos/neto + breakdown por categoría con barras CSS
+- Navegación entre meses con flechas ← →
+- FAB siempre visible, sincroniza dashboard al guardar
+
+Próximo paso (después de una semana de uso real):
+- Polish basado en uso real (fricción, categorías faltantes, ajustes UX)
+- Después: Fase 3 (vista anual)
