@@ -162,6 +162,38 @@ export class SqliteTransactionRepository implements TransactionRepository {
     }))
   }
 
+  async listByMonth(year: number, month: number): Promise<Transaction[]> {
+    const { result } = await this.promiser('exec', {
+      sql: `
+        SELECT
+          t.id, t.type, t.amount, t.currency,
+          t.category_id, t.account, t.date, t.note, t.payment_method,
+          COALESCE(c.name, t.category_id) AS category_name
+        FROM transactions t
+        LEFT JOIN categories c ON c.id = t.category_id
+        WHERE strftime('%Y', t.date) = ? AND strftime('%m', t.date) = ?
+        ORDER BY t.date DESC
+      `,
+      bind: [String(year), String(month).padStart(2, '0')],
+      returnValue: 'resultRows',
+      rowMode: 'object',
+    })
+
+    const rows = (result.resultRows ?? []) as Array<Record<string, string | number | null>>
+    return rows.map(row => ({
+      id:            String(row.id),
+      type:          row.type as Transaction['type'],
+      amount:        Number(row.amount),
+      currency:      String(row.currency),
+      categoryId:    String(row.category_id),
+      categoryName:  String(row.category_name ?? row.category_id),
+      account:       String(row.account),
+      date:          String(row.date),
+      note:          row.note != null ? String(row.note) : undefined,
+      paymentMethod: row.payment_method as Transaction['paymentMethod'],
+    }))
+  }
+
   async list(): Promise<Transaction[]> {
     const { result } = await this.promiser('exec', {
       sql: `

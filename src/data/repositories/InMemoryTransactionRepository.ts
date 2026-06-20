@@ -101,4 +101,12 @@ export class InMemoryTransactionRepository implements TransactionRepository {
     const result = type ? CATEGORIES.filter(c => c.type === type) : [...CATEGORIES]
     return Promise.resolve(result)
   }
+
+  listByMonth(year: number, month: number): Promise<Transaction[]> {
+    const prefix = `${year}-${String(month).padStart(2, '0')}`
+    const filtered = this.data
+      .filter(t => t.date.startsWith(prefix))
+      .sort((a, b) => b.date.localeCompare(a.date))
+    return Promise.resolve(filtered)
+  }
 }
