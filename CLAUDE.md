@@ -1,4 +1,4 @@
-# Time is money — Contexto del proyecto
+# Mango — Contexto del proyecto
 
 ## Qué es
 App de finanzas personales para uso propio (un solo usuario: yo).

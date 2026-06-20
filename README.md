@@ -1,4 +1,4 @@
-# Time is Money
+# Mango
 
 A local-first personal finance app built for one purpose: logging an expense in
 under 5 seconds. No friction, no cloud, full privacy.
@@ -6,7 +6,7 @@ under 5 seconds. No friction, no cloud, full privacy.
 ## Why
 
 Most finance trackers get abandoned because logging a transaction is tedious.
-Time is Money optimizes for the one action that matters — fast entry — and keeps
+Mango optimizes for the one action that matters — fast entry — and keeps
 all data on your device.
 
 ## Features

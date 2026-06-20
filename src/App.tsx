@@ -75,7 +75,7 @@ export default function App() {
       <AppShell view={view} onViewChange={setView} onFabClick={() => setPanelOpen(true)}>
         <div style={{ padding: 'var(--space-8)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
 
-          <Text variant="heading" style={{ marginBottom: 'var(--space-1)' }}>Time is Money</Text>
+          <Text variant="heading" style={{ marginBottom: 'var(--space-1)' }}>Mango</Text>
 
           {view === 'movements' && (
             <>
