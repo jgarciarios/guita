@@ -11,13 +11,6 @@ const SEED_CATEGORIES = [
   { id: 'transport', name: 'Transporte',   type: 'expense', color: '#E5544B' },
 ]
 
-const SEED_TRANSACTIONS = [
-  { id: '1', type: 'income',  amount: 185_000_000, currency: 'ARS', categoryId: 'salary',    account: 'Banco Galicia', date: '2026-06-01', note: 'Sueldo junio',       paymentMethod: 'transfer' },
-  { id: '2', type: 'expense', amount:  42_000_000, currency: 'ARS', categoryId: 'rent',      account: 'Efectivo',      date: '2026-06-05', note: 'Alquiler',           paymentMethod: 'cash'     },
-  { id: '3', type: 'expense', amount:   8_730_000, currency: 'ARS', categoryId: 'groceries', account: 'Banco Galicia', date: '2026-06-10', note: 'Supermercado Coto',  paymentMethod: 'card'     },
-  { id: '4', type: 'income',  amount:  35_000_000, currency: 'ARS', categoryId: 'freelance', account: 'Banco Galicia', date: '2026-06-12', note: 'Proyecto freelance', paymentMethod: 'transfer' },
-  { id: '5', type: 'expense', amount:   5_480_000, currency: 'ARS', categoryId: 'transport', account: 'Efectivo',      date: '2026-06-15', note: 'Nafta',              paymentMethod: 'cash'     },
-]
 
 export class SqliteTransactionRepository implements TransactionRepository {
   private readonly promiser: Worker1Promiser
@@ -66,7 +59,6 @@ export class SqliteTransactionRepository implements TransactionRepository {
       `,
     })
     await this.seedExpenseCategoriesIfEmpty()
-    await this.seedTransactionsIfEmpty()
   }
 
   private async seedExpenseCategoriesIfEmpty(): Promise<void> {
@@ -83,33 +75,6 @@ export class SqliteTransactionRepository implements TransactionRepository {
       await this.promiser('exec', {
         sql: 'INSERT OR IGNORE INTO categories (id, name, type, color) VALUES (?, ?, ?, ?)',
         bind: [cat.id, cat.name, cat.type, cat.color],
-      })
-    }
-  }
-
-  private async seedTransactionsIfEmpty(): Promise<void> {
-    const { result } = await this.promiser('exec', {
-      sql: 'SELECT COUNT(*) AS count FROM transactions',
-      returnValue: 'resultRows',
-      rowMode: 'object',
-    })
-    const rows = result.resultRows as Array<Record<string, number>>
-    if ((rows[0]?.count ?? 0) > 0) return
-
-    const incomeCategories = SEED_CATEGORIES.filter(c => c.type === 'income')
-    for (const cat of incomeCategories) {
-      await this.promiser('exec', {
-        sql: 'INSERT OR IGNORE INTO categories (id, name, type, color) VALUES (?, ?, ?, ?)',
-        bind: [cat.id, cat.name, cat.type, cat.color],
-      })
-    }
-
-    for (const t of SEED_TRANSACTIONS) {
-      await this.promiser('exec', {
-        sql: `INSERT INTO transactions
-              (id, type, amount, currency, category_id, account, date, note, payment_method)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        bind: [t.id, t.type, t.amount, t.currency, t.categoryId, t.account, t.date, t.note, t.paymentMethod],
       })
     }
   }
