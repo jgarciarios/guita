@@ -7,8 +7,9 @@ import type { Transaction } from './domain/types'
 import { AppShell } from './components/AppShell'
 import { QuickEntryPanel } from './components/QuickEntryPanel'
 import { Dashboard } from './components/Dashboard'
+import { Categories } from './components/Categories'
 
-type View = 'movements' | 'dashboard'
+type View = 'movements' | 'dashboard' | 'categories'
 
 export default function App() {
   const repoRef = useRef<TransactionRepository | null>(null)
@@ -135,6 +136,10 @@ export default function App() {
               repo={repoRef.current}
               refreshKey={refreshKey}
             />
+          )}
+
+          {view === 'categories' && repoRef.current && (
+            <Categories repo={repoRef.current} />
           )}
 
         </div>

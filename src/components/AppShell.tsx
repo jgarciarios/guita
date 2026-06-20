@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import styles from './AppShell.module.css'
 import { FAB } from './FAB'
 
-type View = 'movements' | 'dashboard'
+type View = 'movements' | 'dashboard' | 'categories'
 
 interface AppShellProps {
   view: View
@@ -27,6 +27,15 @@ function IconDashboard() {
       <rect x="2"  y="10" width="4" height="8" fill="currentColor" />
       <rect x="8"  y="6"  width="4" height="12" fill="currentColor" />
       <rect x="14" y="2"  width="4" height="16" fill="currentColor" />
+    </svg>
+  )
+}
+
+function IconCategories() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path d="M3 4h7l6 6-6 6H3V4z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+      <circle cx="7" cy="10" r="1.5" fill="currentColor" />
     </svg>
   )
 }
@@ -60,6 +69,15 @@ export function AppShell({ view, onViewChange, onFabClick, children }: AppShellP
         >
           <IconDashboard />
           Dashboard
+        </button>
+        <button
+          className={`${styles.navItem} ${view === 'categories' ? styles.navItemActive : ''}`}
+          onClick={() => onViewChange('categories')}
+          aria-label="Categorías"
+          aria-current={view === 'categories' ? 'page' : undefined}
+        >
+          <IconCategories />
+          Categorías
         </button>
       </nav>
     </div>

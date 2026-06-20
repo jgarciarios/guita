@@ -1,17 +1,13 @@
 import type { Transaction, Category, TransactionType } from '../../domain/types'
 import type { TransactionRepository } from './TransactionRepository'
 
-const CATEGORIES: Category[] = [
+const SEED_CATEGORIES: Category[] = [
   { id: 'salary',    name: 'Sueldo',       type: 'income',  color: '#2FBF71' },
   { id: 'freelance', name: 'Freelance',    type: 'income',  color: '#2FBF71' },
   { id: 'rent',      name: 'Alquiler',     type: 'expense', color: '#E5544B' },
   { id: 'groceries', name: 'Supermercado', type: 'expense', color: '#E5544B' },
   { id: 'transport', name: 'Transporte',   type: 'expense', color: '#E5544B' },
 ]
-
-const CATEGORY_NAME: Record<string, string> = Object.fromEntries(
-  CATEGORIES.map(c => [c.id, c.name])
-)
 
 const SEED: Transaction[] = [
   {
@@ -77,10 +73,15 @@ const SEED: Transaction[] = [
 ]
 
 export class InMemoryTransactionRepository implements TransactionRepository {
-  private data: Transaction[] = SEED.map(t => ({
-    ...t,
-    categoryName: CATEGORY_NAME[t.categoryId] ?? t.categoryId,
-  }))
+  private categories: Category[] = [...SEED_CATEGORIES]
+  private data: Transaction[] = SEED.map(t => {
+    const cat = SEED_CATEGORIES.find(c => c.id === t.categoryId)
+    return { ...t, categoryName: cat?.name ?? t.categoryId }
+  })
+
+  private categoryName(id: string): string {
+    return this.categories.find(c => c.id === id)?.name ?? id
+  }
 
   list(): Promise<Transaction[]> {
     const sorted = [...this.data].sort((a, b) => b.date.localeCompare(a.date))
@@ -91,7 +92,7 @@ export class InMemoryTransactionRepository implements TransactionRepository {
     const created: Transaction = {
       ...transaction,
       id: crypto.randomUUID(),
-      categoryName: CATEGORY_NAME[transaction.categoryId] ?? transaction.categoryId,
+      categoryName: this.categoryName(transaction.categoryId),
     }
     this.data.push(created)
     return Promise.resolve(created)
@@ -102,15 +103,28 @@ export class InMemoryTransactionRepository implements TransactionRepository {
     if (idx === -1) return Promise.reject(new Error(`Transaction ${transaction.id} not found`))
     const updated: Transaction = {
       ...transaction,
-      categoryName: CATEGORY_NAME[transaction.categoryId] ?? transaction.categoryId,
+      categoryName: this.categoryName(transaction.categoryId),
     }
     this.data[idx] = updated
     return Promise.resolve(updated)
   }
 
   listCategories(type?: TransactionType): Promise<Category[]> {
-    const result = type ? CATEGORIES.filter(c => c.type === type) : [...CATEGORIES]
+    const result = type ? this.categories.filter(c => c.type === type) : [...this.categories]
     return Promise.resolve(result)
+  }
+
+  createCategory(category: Omit<Category, 'id'>): Promise<Category> {
+    const created: Category = { ...category, id: crypto.randomUUID() }
+    this.categories.push(created)
+    return Promise.resolve(created)
+  }
+
+  deleteCategory(id: string): Promise<void> {
+    const inUse = this.data.some(t => t.categoryId === id)
+    if (inUse) return Promise.reject(new Error('La categoría tiene movimientos asociados y no puede eliminarse.'))
+    this.categories = this.categories.filter(c => c.id !== id)
+    return Promise.resolve()
   }
 
   listByMonth(year: number, month: number): Promise<Transaction[]> {

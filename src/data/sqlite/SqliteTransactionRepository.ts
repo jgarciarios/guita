@@ -65,22 +65,41 @@ export class SqliteTransactionRepository implements TransactionRepository {
         );
       `,
     })
-    await this.seedIfEmpty()
+    await this.seedExpenseCategoriesIfEmpty()
+    await this.seedTransactionsIfEmpty()
   }
 
-  private async seedIfEmpty(): Promise<void> {
+  private async seedExpenseCategoriesIfEmpty(): Promise<void> {
+    const { result } = await this.promiser('exec', {
+      sql: `SELECT COUNT(*) AS count FROM categories WHERE type = 'expense'`,
+      returnValue: 'resultRows',
+      rowMode: 'object',
+    })
+    const rows = result.resultRows as Array<Record<string, number>>
+    if ((rows[0]?.count ?? 0) > 0) return
+
+    const expenseCategories = SEED_CATEGORIES.filter(c => c.type === 'expense')
+    for (const cat of expenseCategories) {
+      await this.promiser('exec', {
+        sql: 'INSERT OR IGNORE INTO categories (id, name, type, color) VALUES (?, ?, ?, ?)',
+        bind: [cat.id, cat.name, cat.type, cat.color],
+      })
+    }
+  }
+
+  private async seedTransactionsIfEmpty(): Promise<void> {
     const { result } = await this.promiser('exec', {
       sql: 'SELECT COUNT(*) AS count FROM transactions',
       returnValue: 'resultRows',
       rowMode: 'object',
     })
-
     const rows = result.resultRows as Array<Record<string, number>>
     if ((rows[0]?.count ?? 0) > 0) return
 
-    for (const cat of SEED_CATEGORIES) {
+    const incomeCategories = SEED_CATEGORIES.filter(c => c.type === 'income')
+    for (const cat of incomeCategories) {
       await this.promiser('exec', {
-        sql: 'INSERT INTO categories (id, name, type, color) VALUES (?, ?, ?, ?)',
+        sql: 'INSERT OR IGNORE INTO categories (id, name, type, color) VALUES (?, ?, ?, ?)',
         bind: [cat.id, cat.name, cat.type, cat.color],
       })
     }
@@ -182,6 +201,32 @@ export class SqliteTransactionRepository implements TransactionRepository {
       note:          row.note != null ? String(row.note) : undefined,
       paymentMethod: row.payment_method as Transaction['paymentMethod'],
     }
+  }
+
+  async createCategory(category: Omit<Category, 'id'>): Promise<Category> {
+    const id = crypto.randomUUID()
+    await this.promiser('exec', {
+      sql: 'INSERT INTO categories (id, name, type, color) VALUES (?, ?, ?, ?)',
+      bind: [id, category.name, category.type, category.color],
+    })
+    return { ...category, id }
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    const { result } = await this.promiser('exec', {
+      sql: 'SELECT COUNT(*) AS count FROM transactions WHERE category_id = ?',
+      bind: [id],
+      returnValue: 'resultRows',
+      rowMode: 'object',
+    })
+    const rows = result.resultRows as Array<Record<string, number>>
+    if ((rows[0]?.count ?? 0) > 0) {
+      throw new Error('La categoría tiene movimientos asociados y no puede eliminarse.')
+    }
+    await this.promiser('exec', {
+      sql: 'DELETE FROM categories WHERE id = ?',
+      bind: [id],
+    })
   }
 
   async listCategories(type?: TransactionType): Promise<Category[]> {
