@@ -45,8 +45,13 @@
 }
 
 .stats {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-2);
+}
+
+.statFull {
+  grid-column: 1 / -1;
 }
 
 .sectionLabel {

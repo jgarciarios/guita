@@ -102,7 +102,7 @@ export function Dashboard({ repo, refreshKey }: DashboardProps) {
           <div className={styles.stats}>
             <StatCard label="INGRESOS" value={income} variant="income" />
             <StatCard label="GASTOS" value={expenses} variant="expense" />
-            <StatCard label="NETO" value={net} variant="net" />
+            <StatCard label="NETO" value={net} variant="net" className={styles.statFull} />
           </div>
 
           {byCategory.length > 0 && (

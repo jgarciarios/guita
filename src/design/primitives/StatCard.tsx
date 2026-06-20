@@ -5,9 +5,10 @@ interface StatCardProps {
   label: string
   value: number
   variant: 'income' | 'expense' | 'net'
+  className?: string
 }
 
-export function StatCard({ label, value, variant }: StatCardProps) {
+export function StatCard({ label, value, variant, className }: StatCardProps) {
   let color: string
   let prefix: string
 
@@ -23,7 +24,7 @@ export function StatCard({ label, value, variant }: StatCardProps) {
   }
 
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card}${className ? ` ${className}` : ''}`}>
       <span className={styles.value} style={{ color }}>
         {prefix}{formatARS(Math.abs(value))}
       </span>
