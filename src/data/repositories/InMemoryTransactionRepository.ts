@@ -97,6 +97,17 @@ export class InMemoryTransactionRepository implements TransactionRepository {
     return Promise.resolve(created)
   }
 
+  update(transaction: Transaction): Promise<Transaction> {
+    const idx = this.data.findIndex(t => t.id === transaction.id)
+    if (idx === -1) return Promise.reject(new Error(`Transaction ${transaction.id} not found`))
+    const updated: Transaction = {
+      ...transaction,
+      categoryName: CATEGORY_NAME[transaction.categoryId] ?? transaction.categoryId,
+    }
+    this.data[idx] = updated
+    return Promise.resolve(updated)
+  }
+
   listCategories(type?: TransactionType): Promise<Category[]> {
     const result = type ? CATEGORIES.filter(c => c.type === type) : [...CATEGORIES]
     return Promise.resolve(result)

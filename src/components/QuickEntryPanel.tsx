@@ -2,34 +2,44 @@ import { useState, useEffect, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
 import { Button, Input, Chip } from '../design'
 import type { TransactionRepository } from '../data/repositories/TransactionRepository'
-import type { Category, TransactionType } from '../domain/types'
+import type { Category, Transaction, TransactionType } from '../domain/types'
 import styles from './QuickEntryPanel.module.css'
 
 interface Props {
   repo: TransactionRepository
   onSaved: () => void
   onClose: () => void
+  initialData?: Transaction
 }
 
-export function QuickEntryPanel({ repo, onSaved, onClose }: Props) {
-  const [type, setType] = useState<TransactionType>('expense')
-  const [amount, setAmount] = useState('')
-  const [categoryId, setCategoryId] = useState<string | null>(null)
-  const [date, setDate] = useState(todayISO())
-  const [note, setNote] = useState('')
+export function QuickEntryPanel({ repo, onSaved, onClose, initialData }: Props) {
+  const isEdit = initialData !== undefined
+
+  const [type, setType] = useState<TransactionType>(initialData?.type ?? 'expense')
+  const [amount, setAmount] = useState(initialData ? String(initialData.amount / 100) : '')
+  const [categoryId, setCategoryId] = useState<string | null>(initialData?.categoryId ?? null)
+  const [date, setDate] = useState(initialData?.date ?? todayISO())
+  const [note, setNote] = useState(initialData?.note ?? '')
   const [categories, setCategories] = useState<Category[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const amountRef = useRef<HTMLInputElement>(null)
+  const skipCategoryReset = useRef(isEdit)
 
   useEffect(() => {
     amountRef.current?.focus()
   }, [])
 
   useEffect(() => {
-    repo.listCategories(type).then(setCategories)
-    setCategoryId(null)
+    repo.listCategories(type).then(cats => {
+      setCategories(cats)
+      if (skipCategoryReset.current) {
+        skipCategoryReset.current = false
+        return
+      }
+      setCategoryId(null)
+    })
   }, [type, repo])
 
   async function handleSave() {
@@ -47,17 +57,30 @@ export function QuickEntryPanel({ repo, onSaved, onClose }: Props) {
     setError(null)
     setSaving(true)
     try {
-      await repo.add({
-        type,
-        amount: amountInt * 100,
-        currency: 'ARS',
-        categoryId,
-        categoryName: categories.find(c => c.id === categoryId)?.name ?? categoryId,
-        account: 'Efectivo',
-        date,
-        note: note.trim() || undefined,
-        paymentMethod: 'cash',
-      })
+      if (isEdit) {
+        await repo.update({
+          ...initialData,
+          type,
+          amount: amountInt * 100,
+          currency: 'ARS',
+          categoryId,
+          categoryName: categories.find(c => c.id === categoryId)?.name ?? categoryId,
+          date,
+          note: note.trim() || undefined,
+        })
+      } else {
+        await repo.add({
+          type,
+          amount: amountInt * 100,
+          currency: 'ARS',
+          categoryId,
+          categoryName: categories.find(c => c.id === categoryId)?.name ?? categoryId,
+          account: 'Efectivo',
+          date,
+          note: note.trim() || undefined,
+          paymentMethod: 'cash',
+        })
+      }
       onSaved()
     } finally {
       setSaving(false)
@@ -75,7 +98,7 @@ export function QuickEntryPanel({ repo, onSaved, onClose }: Props) {
 
   return (
     <div className={styles.overlay} onKeyDown={handleKeyDown} onClick={handleOverlayClick}>
-      <div className={styles.panel} role="dialog" aria-modal="true" aria-label="Agregar movimiento">
+      <div className={styles.panel} role="dialog" aria-modal="true" aria-label={isEdit ? 'Editar movimiento' : 'Agregar movimiento'}>
 
         {/* Header: tipo + cerrar */}
         <div className={styles.header}>
@@ -151,7 +174,7 @@ export function QuickEntryPanel({ repo, onSaved, onClose }: Props) {
         </div>
 
         <Button size="lg" disabled={saving} onClick={handleSave}>
-          {saving ? 'Guardando…' : 'Guardar'}
+          {saving ? 'Guardando…' : isEdit ? 'GUARDAR CAMBIOS' : 'GUARDAR'}
         </Button>
 
       </div>

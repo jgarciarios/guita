@@ -15,6 +15,7 @@ export default function App() {
   const [transactions, setTransactions] = useState<Transaction[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [view, setView] = useState<View>('movements')
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -37,8 +38,13 @@ export default function App() {
     setTransactions(updated)
   }
 
-  function handleSaved() {
+  function closePanel() {
     setPanelOpen(false)
+    setEditingTransaction(null)
+  }
+
+  function handleSaved() {
+    closePanel()
     refresh()
     setRefreshKey(k => k + 1)
   }
@@ -96,7 +102,8 @@ export default function App() {
                 {transactions.map((t) => (
                   <Surface
                     key={t.id}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-4)' }}
+                    onClick={() => setEditingTransaction(t)}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-4)', cursor: 'pointer' }}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       <Text variant="body" style={{ fontSize: 'var(--text-sm)' }}>
@@ -133,11 +140,12 @@ export default function App() {
         </div>
       </AppShell>
 
-      {panelOpen && repoRef.current && (
+      {(panelOpen || editingTransaction !== null) && repoRef.current && (
         <QuickEntryPanel
           repo={repoRef.current}
           onSaved={handleSaved}
-          onClose={() => setPanelOpen(false)}
+          onClose={closePanel}
+          initialData={editingTransaction ?? undefined}
         />
       )}
     </>
