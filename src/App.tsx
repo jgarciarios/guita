@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { useUser, SignInButton, UserButton } from '@clerk/clerk-react'
+import { useUser, useAuth, SignInButton, UserButton } from '@clerk/clerk-react'
 import { Surface, Text, Button } from './design'
-import { SqliteTransactionRepository } from './data/sqlite/SqliteTransactionRepository'
+import { NeonTransactionRepository } from './data/neon/NeonTransactionRepository'
 import { InMemoryTransactionRepository } from './data/repositories/InMemoryTransactionRepository'
 import { DEMO_TRANSACTIONS } from './data/demoData'
 import type { TransactionRepository } from './data/repositories/TransactionRepository'
@@ -14,8 +14,11 @@ import { Categories } from './components/Categories'
 
 type View = 'movements' | 'dashboard' | 'categories'
 
+const NEON_API_URL = import.meta.env.VITE_NEON_DATA_API_URL
+
 export default function App() {
-  const { isSignedIn, isLoaded } = useUser()
+  const { isSignedIn, isLoaded, user } = useUser()
+  const { getToken } = useAuth()
   const repoRef = useRef<TransactionRepository | null>(null)
   const [transactions, setTransactions] = useState<Transaction[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -28,23 +31,27 @@ export default function App() {
     if (!isLoaded) return
 
     setTransactions(null)
+    setError(null)
     repoRef.current = null
 
-    const setup = isSignedIn
-      ? SqliteTransactionRepository.create()
-      : Promise.resolve(new InMemoryTransactionRepository(DEMO_TRANSACTIONS))
+    if (isSignedIn && user) {
+      if (!NEON_API_URL) {
+        setError('Falta VITE_NEON_DATA_API_URL en .env.local')
+        return
+      }
+      repoRef.current = new NeonTransactionRepository(NEON_API_URL, user.id, () => getToken())
+    } else {
+      repoRef.current = new InMemoryTransactionRepository(DEMO_TRANSACTIONS)
+    }
 
-    setup
-      .then(repo => {
-        repoRef.current = repo
-        return repo.list()
-      })
+    repoRef.current
+      .list()
       .then(setTransactions)
       .catch(err => {
         const msg = err instanceof Error ? err.message : JSON.stringify(err)
         setError(msg)
       })
-  }, [isLoaded, isSignedIn])
+  }, [isLoaded, isSignedIn, user, getToken])
 
   async function refresh() {
     if (!repoRef.current) return
