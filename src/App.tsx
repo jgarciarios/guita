@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { Surface, Text } from './design'
+import { useUser, SignInButton, UserButton } from '@clerk/clerk-react'
+import { Surface, Text, Button } from './design'
 import { SqliteTransactionRepository } from './data/sqlite/SqliteTransactionRepository'
+import { InMemoryTransactionRepository } from './data/repositories/InMemoryTransactionRepository'
+import { DEMO_TRANSACTIONS } from './data/demoData'
 import type { TransactionRepository } from './data/repositories/TransactionRepository'
 import { calculateBalance, formatARS, formatDate } from './domain/finance'
 import type { Transaction } from './domain/types'
@@ -12,6 +15,7 @@ import { Categories } from './components/Categories'
 type View = 'movements' | 'dashboard' | 'categories'
 
 export default function App() {
+  const { isSignedIn, isLoaded } = useUser()
   const repoRef = useRef<TransactionRepository | null>(null)
   const [transactions, setTransactions] = useState<Transaction[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -21,7 +25,16 @@ export default function App() {
   const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
-    SqliteTransactionRepository.create()
+    if (!isLoaded) return
+
+    setTransactions(null)
+    repoRef.current = null
+
+    const setup = isSignedIn
+      ? SqliteTransactionRepository.create()
+      : Promise.resolve(new InMemoryTransactionRepository(DEMO_TRANSACTIONS))
+
+    setup
       .then(repo => {
         repoRef.current = repo
         return repo.list()
@@ -31,7 +44,7 @@ export default function App() {
         const msg = err instanceof Error ? err.message : JSON.stringify(err)
         setError(msg)
       })
-  }, [])
+  }, [isLoaded, isSignedIn])
 
   async function refresh() {
     if (!repoRef.current) return
@@ -83,7 +96,22 @@ export default function App() {
       <AppShell view={view} onViewChange={setView} onFabClick={() => setPanelOpen(true)}>
         <div style={{ padding: 'var(--space-8)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
 
-          <Text variant="heading" style={{ marginBottom: 'var(--space-1)' }}>Mango</Text>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text variant="heading" style={{ marginBottom: 'var(--space-1)' }}>Mango</Text>
+            {isSignedIn ? (
+              <UserButton />
+            ) : (
+              <SignInButton mode="modal">
+                <Button variant="ghost" size="sm">Iniciar sesión</Button>
+              </SignInButton>
+            )}
+          </div>
+
+          {!isSignedIn && (
+            <Surface style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+              Estás viendo datos de ejemplo. Iniciá sesión para guardar los tuyos.
+            </Surface>
+          )}
 
           {view === 'movements' && (
             <>

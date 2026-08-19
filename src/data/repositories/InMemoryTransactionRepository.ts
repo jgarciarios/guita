@@ -11,7 +11,11 @@ const SEED_CATEGORIES: Category[] = [
 
 export class InMemoryTransactionRepository implements TransactionRepository {
   private categories: Category[] = [...SEED_CATEGORIES]
-  private data: Transaction[] = []
+  private data: Transaction[]
+
+  constructor(seed: Transaction[] = []) {
+    this.data = [...seed]
+  }
 
   private categoryName(id: string): string {
     return this.categories.find(c => c.id === id)?.name ?? id
