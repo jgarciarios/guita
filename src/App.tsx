@@ -3,23 +3,26 @@ import { useUser, useAuth, SignInButton, UserButton } from '@clerk/clerk-react'
 import { Surface, Text, Button } from './design'
 import { NeonTransactionRepository } from './data/neon/NeonTransactionRepository'
 import { InMemoryTransactionRepository } from './data/repositories/InMemoryTransactionRepository'
-import { DEMO_TRANSACTIONS } from './data/demoData'
+import { DEMO_TRANSACTIONS, DEMO_ASSETS } from './data/demoData'
 import type { TransactionRepository } from './data/repositories/TransactionRepository'
+import type { AssetRepository } from './data/repositories/AssetRepository'
 import { calculateBalance, formatARS, formatDate } from './domain/finance'
 import type { Transaction } from './domain/types'
 import { AppShell } from './components/AppShell'
 import { QuickEntryPanel } from './components/QuickEntryPanel'
 import { Dashboard } from './components/Dashboard'
 import { Categories } from './components/Categories'
+import { Assets } from './components/Assets'
 
-type View = 'movements' | 'dashboard' | 'categories'
+type View = 'movements' | 'dashboard' | 'categories' | 'assets'
+type AppRepository = TransactionRepository & AssetRepository
 
 const NEON_API_URL = import.meta.env.VITE_NEON_DATA_API_URL
 
 export default function App() {
   const { isSignedIn, isLoaded, user } = useUser()
   const { getToken } = useAuth()
-  const repoRef = useRef<TransactionRepository | null>(null)
+  const repoRef = useRef<AppRepository | null>(null)
   const [transactions, setTransactions] = useState<Transaction[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
@@ -41,7 +44,7 @@ export default function App() {
       }
       repoRef.current = new NeonTransactionRepository(NEON_API_URL, user.id, () => getToken({ template: 'neon' }))
     } else {
-      repoRef.current = new InMemoryTransactionRepository(DEMO_TRANSACTIONS)
+      repoRef.current = new InMemoryTransactionRepository(DEMO_TRANSACTIONS, DEMO_ASSETS)
     }
 
     repoRef.current
@@ -188,7 +191,7 @@ export default function App() {
                       >
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M1 3h12M5 3V2h4v1M2 3l1 9h6l1-9H2z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                      </svg>
                       </button>
                     </div>
                   </Surface>
@@ -206,6 +209,10 @@ export default function App() {
 
           {view === 'categories' && repoRef.current && (
             <Categories repo={repoRef.current} />
+          )}
+
+          {view === 'assets' && repoRef.current && (
+            <Assets repo={repoRef.current} />
           )}
 
         </div>
