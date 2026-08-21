@@ -39,7 +39,7 @@ export default function App() {
         setError('Falta VITE_NEON_DATA_API_URL en .env.local')
         return
       }
-      repoRef.current = new NeonTransactionRepository(NEON_API_URL, user.id, () => getToken())
+      repoRef.current = new NeonTransactionRepository(NEON_API_URL, user.id, () => getToken({ template: 'neon' }))
     } else {
       repoRef.current = new InMemoryTransactionRepository(DEMO_TRANSACTIONS)
     }
