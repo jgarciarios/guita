@@ -26,11 +26,15 @@ interface CategoryRow {
 // Cada request lleva el JWT de Clerk en el header Authorization; Neon valida
 // ese token y aplica las políticas de RLS (cada usuario solo ve/edita lo suyo).
 export class NeonTransactionRepository implements TransactionRepository {
-  constructor(
-    private readonly apiUrl: string,
-    private readonly userId: string,
-    private readonly getToken: GetToken,
-  ) {}
+  private readonly apiUrl: string
+  private readonly userId: string
+  private readonly getToken: GetToken
+
+  constructor(apiUrl: string, userId: string, getToken: GetToken) {
+    this.apiUrl = apiUrl
+    this.userId = userId
+    this.getToken = getToken
+  }
 
   private async request(path: string, init: RequestInit = {}): Promise<Response> {
     const token = await this.getToken()
