@@ -1,0 +1,113 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sectionLabel {
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.totalCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.empty {
+  font-size: var(--text-sm);
+  padding: var(--space-4) 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.assetName {
+  font-size: var(--text-sm);
+}
+
+.assetCategory {
+  font-size: var(--text-xs);
+}
+
+.rowRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.assetValue {
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: var(--space-1);
+  display: flex;
+  align-items: center;
+  border-radius: 2px;
+  transition: color 100ms;
+  flex-shrink: 0;
+}
+
+.deleteBtn:hover {
+  color: var(--color-red);
+}
+
+.deleteBtn:active {
+  opacity: 0.7;
+}
+
+.addForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.addRow {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+}
+
+.valueInput {
+  flex: 1;
+}
+
+.error {
+  font-size: var(--text-xs);
+  color: var(--color-red);
+  font-family: var(--font-sans);
+  margin: 0;
+}
