@@ -20,3 +20,14 @@ export interface Transaction {
   note?: string
   paymentMethod: PaymentMethod
 }
+
+export type AssetCategory = 'cuenta' | 'inversion' | 'propiedad' | 'vehiculo' | 'otro'
+
+export interface Asset {
+  id: string
+  name: string
+  category: AssetCategory
+  value: number  // in centavos (integer)
+  currency: string
+  updatedAt: string
+}
