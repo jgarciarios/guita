@@ -1,5 +1,6 @@
-import type { Transaction, Category, TransactionType } from '../../domain/types'
+import type { Transaction, Category, TransactionType, Asset, AssetCategory } from '../../domain/types'
 import type { TransactionRepository } from '../repositories/TransactionRepository'
+import type { AssetRepository } from '../repositories/AssetRepository'
 
 type GetToken = () => Promise<string | null>
 
@@ -22,10 +23,19 @@ interface CategoryRow {
   color: string
 }
 
+interface AssetRow {
+  id: string
+  name: string
+  category: AssetCategory
+  value: number
+  currency: string
+  updated_at: string
+}
+
 // Repositorio que habla con Neon via su Data API (REST, estilo PostgREST).
 // Cada request lleva el JWT de Clerk en el header Authorization; Neon valida
 // ese token y aplica las políticas de RLS (cada usuario solo ve/edita lo suyo).
-export class NeonTransactionRepository implements TransactionRepository {
+export class NeonTransactionRepository implements TransactionRepository, AssetRepository {
   private readonly apiUrl: string
   private readonly userId: string
   private readonly getToken: GetToken
@@ -162,5 +172,56 @@ export class NeonTransactionRepository implements TransactionRepository {
     const all = await this.list()
     const prefix = `${year}-${String(month).padStart(2, '0')}`
     return all.filter(t => t.date.startsWith(prefix))
+  }
+
+  private toAsset(row: AssetRow): Asset {
+    return {
+      id: row.id,
+      name: row.name,
+      category: row.category,
+      value: row.value,
+      currency: row.currency,
+      updatedAt: row.updated_at,
+    }
+  }
+
+  async listAssets(): Promise<Asset[]> {
+    const res = await this.request('/assets?order=category,name')
+    const rows: AssetRow[] = await res.json()
+    return rows.map(row => this.toAsset(row))
+  }
+
+  async addAsset(asset: Omit<Asset, 'id' | 'updatedAt'>): Promise<Asset> {
+    const res = await this.request('/assets', {
+      method: 'POST',
+      body: JSON.stringify({
+        user_id: this.userId,
+        name: asset.name,
+        category: asset.category,
+        value: asset.value,
+        currency: asset.currency,
+      }),
+    })
+    const [row]: AssetRow[] = await res.json()
+    return this.toAsset(row)
+  }
+
+  async updateAsset(asset: Asset): Promise<Asset> {
+    const res = await this.request(`/assets?id=eq.${asset.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        name: asset.name,
+        category: asset.category,
+        value: asset.value,
+        currency: asset.currency,
+        updated_at: new Date().toISOString(),
+      }),
+    })
+    const [row]: AssetRow[] = await res.json()
+    return this.toAsset(row)
+  }
+
+  async deleteAsset(id: string): Promise<void> {
+    await this.request(`/assets?id=eq.${id}`, { method: 'DELETE' })
   }
 }
