@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import styles from './AppShell.module.css'
 import { FAB } from './FAB'
 
-type View = 'movements' | 'dashboard' | 'categories'
+type View = 'movements' | 'dashboard' | 'categories' | 'assets'
 
 interface AppShellProps {
   view: View
@@ -36,6 +36,16 @@ function IconCategories() {
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
       <path d="M3 4h7l6 6-6 6H3V4z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
       <circle cx="7" cy="10" r="1.5" fill="currentColor" />
+    </svg>
+  )
+}
+
+function IconAssets() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <rect x="2" y="5" width="16" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <path d="M2 8h16" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="14" cy="12" r="1.3" fill="currentColor" />
     </svg>
   )
 }
@@ -78,6 +88,15 @@ export function AppShell({ view, onViewChange, onFabClick, children }: AppShellP
         >
           <IconCategories />
           Categorías
+        </button>
+        <button
+          className={`${styles.navItem} ${view === 'assets' ? styles.navItemActive : ''}`}
+          onClick={() => onViewChange('assets')}
+          aria-label="Activos"
+          aria-current={view === 'assets' ? 'page' : undefined}
+        >
+          <IconAssets />
+          Activos
         </button>
       </nav>
     </div>
