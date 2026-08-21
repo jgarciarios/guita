@@ -1,5 +1,6 @@
-import type { Transaction, Category, TransactionType } from '../../domain/types'
+import type { Transaction, Category, TransactionType, Asset } from '../../domain/types'
 import type { TransactionRepository } from './TransactionRepository'
+import type { AssetRepository } from './AssetRepository'
 
 const SEED_CATEGORIES: Category[] = [
   { id: 'salary',    name: 'Sueldo',       type: 'income',  color: '#2FBF71' },
@@ -9,12 +10,14 @@ const SEED_CATEGORIES: Category[] = [
   { id: 'transport', name: 'Transporte',   type: 'expense', color: '#E5544B' },
 ]
 
-export class InMemoryTransactionRepository implements TransactionRepository {
+export class InMemoryTransactionRepository implements TransactionRepository, AssetRepository {
   private categories: Category[] = [...SEED_CATEGORIES]
   private data: Transaction[]
+  private assets: Asset[]
 
-  constructor(seed: Transaction[] = []) {
+  constructor(seed: Transaction[] = [], seedAssets: Asset[] = []) {
     this.data = [...seed]
+    this.assets = [...seedAssets]
   }
 
   private categoryName(id: string): string {
@@ -76,5 +79,29 @@ export class InMemoryTransactionRepository implements TransactionRepository {
       .filter(t => t.date.startsWith(prefix))
       .sort((a, b) => b.date.localeCompare(a.date))
     return Promise.resolve(filtered)
+  }
+
+  listAssets(): Promise<Asset[]> {
+    const sorted = [...this.assets].sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name))
+    return Promise.resolve(sorted)
+  }
+
+  addAsset(asset: Omit<Asset, 'id' | 'updatedAt'>): Promise<Asset> {
+    const created: Asset = { ...asset, id: crypto.randomUUID(), updatedAt: new Date().toISOString() }
+    this.assets.push(created)
+    return Promise.resolve(created)
+  }
+
+  updateAsset(asset: Asset): Promise<Asset> {
+    const idx = this.assets.findIndex(a => a.id === asset.id)
+    if (idx === -1) return Promise.reject(new Error(`Asset ${asset.id} not found`))
+    const updated: Asset = { ...asset, updatedAt: new Date().toISOString() }
+    this.assets[idx] = updated
+    return Promise.resolve(updated)
+  }
+
+  deleteAsset(id: string): Promise<void> {
+    this.assets = this.assets.filter(a => a.id !== id)
+    return Promise.resolve()
   }
 }
